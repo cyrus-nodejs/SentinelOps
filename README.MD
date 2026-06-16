@@ -39,9 +39,7 @@ SentinelOps AI introduces an Agentic Operations workflow where multiple speciali
 
 ---
 
-# Hackathon Tracks
 
-This project targets all three primary hackathon tracks:
 
 ### Observability
 
@@ -490,7 +488,7 @@ SentinelOps AI transforms incident response from a manual, reactive process into
 
 By combining Splunk operational intelligence, AI agents, and real-time remediation capabilities, teams can investigate faster, respond smarter, and reduce operational burden across security and observability domains.
 
-Built for the Splunk Agentic Ops Hackathon.
+Built for the Splunk Agentic Ops .
 
 ---
 ## License
