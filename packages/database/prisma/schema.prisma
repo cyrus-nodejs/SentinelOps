@@ -1,0 +1,335 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum IncidentSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum IncidentStatus {
+  OPEN
+  INVESTIGATING
+  RESOLVED
+  CLOSED
+}
+
+enum AgentRunStatus {
+  PENDING
+  RUNNING
+  SUCCESS
+  FAILED
+}
+
+enum UserRole {
+  ADMIN
+  ANALYST
+  ENGINEER
+  VIEWER
+}
+
+enum AlertSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum AlertStatus {
+  OPEN
+  ACKNOWLEDGED
+  RESOLVED
+}
+
+enum HostStatus {
+  HEALTHY
+  WARNING
+  CRITICAL
+}
+
+model User {
+  id String @id @default(uuid())
+
+  email String @unique
+
+  password String
+
+  firstName String
+
+  lastName String
+
+  role UserRole
+
+  organizationId String
+
+  teamId String?
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+
+  team Team?  @relation(fields: [teamId], references: [id])
+
+  incidents Incident[]
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+}
+
+model Organization {
+  id String @id @default(uuid())
+
+  name String
+
+  createdAt DateTime @default(now())
+
+  users User[]
+
+  teams Team[]
+
+  hosts Host[]
+
+  services Service[]
+}
+
+
+model Team {
+  id String @id @default(uuid())
+
+  name String
+
+  organizationId String
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+
+  users User[]
+}
+
+
+model Host {
+  id String @id @default(uuid())
+
+  hostname String
+
+  ipAddress String
+
+  status HostStatus
+
+  organizationId String
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+
+  alerts Alert[]
+}
+
+
+model Service {
+  id String @id @default(uuid())
+
+  name String
+
+  version String
+
+  organizationId String
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+}
+
+model Incident {
+  id          String @id @default(uuid())
+
+  title       String
+  description String
+
+  severity    IncidentSeverity
+  status      IncidentStatus
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  assignedToId String?
+
+  assignedTo User? @relation(fields: [assignedToId], references: [id])
+
+  investigation Investigation?
+}
+
+model Investigation {
+  id          String @id @default(uuid())
+
+  summary     String?
+
+  rootCause   String?
+
+  incidentId  String @unique
+
+  incident    Incident @relation(fields: [incidentId], references: [id])
+
+  evidences   Evidence[]
+
+  createdAt   DateTime @default(now())
+}
+
+model Evidence {
+  id String @id @default(uuid())
+
+  source String
+
+  content Json
+
+  investigationId String
+
+  investigation Investigation  @relation(fields: [investigationId], references: [id])
+}
+
+model AgentRun {
+  id String @id @default(uuid())
+
+  agentName String
+
+  status AgentRunStatus
+
+  startedAt DateTime @default(now())
+
+  finishedAt DateTime?
+
+  output Json?
+}
+
+model Remediation {
+  id String @id @default(uuid())
+
+  action String
+
+  approved Boolean @default(false)
+
+  executed Boolean @default(false)
+
+  incidentId String
+
+  createdAt DateTime @default(now())
+}
+
+model Alert {
+  id String @id @default(uuid())
+
+  title String
+
+  description String
+
+  severity AlertSeverity
+
+  status AlertStatus
+
+  hostId String
+
+  host Host @relation(fields: [hostId], references: [id])
+
+  createdAt DateTime @default(now())
+}
+
+model LogEvent {
+  id String @id @default(uuid())
+
+  source String
+
+  level String
+
+  message String
+
+  metadata Json?
+
+  timestamp DateTime @default(now())
+}
+
+model AuditLog {
+  id String @id @default(uuid())
+
+  actor String
+
+  action String
+
+  resource String
+
+  metadata Json?
+
+  createdAt DateTime @default(now())
+}
+
+model EvidenceNode {
+  id String @id
+
+  type String
+
+  value String
+
+  metadata Json?
+}
+
+model EvidenceEdge {
+  id String @id
+
+  sourceId String
+
+  targetId String
+
+  relation String
+}
+
+
+model RemediationExecution {
+  id String @id
+
+  action String
+
+  status String
+
+  verified Boolean
+
+  rollbackAvailable Boolean
+
+  createdAt DateTime
+}
+
+
+model Approval {
+  id String @id
+
+  approverId String
+
+  approved Boolean
+
+  approvedAt DateTime?
+}
+
+model AgentMetric {
+  id String @id
+
+  agent String
+
+  latencyMs Int
+
+  tokenCount Int
+
+  model String
+
+  success Boolean
+
+  createdAt DateTime
+}
+
+model AgentMemory {
+  id String @id
+
+  incidentId String
+
+  key String
+
+  value Json
+}
